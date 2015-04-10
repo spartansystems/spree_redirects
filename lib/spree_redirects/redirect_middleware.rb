@@ -16,11 +16,12 @@ module SpreeRedirects
       end
 
       if routing_error.present? or status == 404
-        path = [ env["PATH_INFO"], env["QUERY_STRING"] ].join("?").sub(/[\/\?\s]*$/, "").strip
+        # path = [ env["PATH_INFO"], env["QUERY_STRING"] ].join("?").sub(/[\/\?\s]*$/, "").strip
 
-        if url = find_redirect(path)
+        if url = find_redirect(env["PATH_INFO"])
           # Issue a "Moved permanently" response with the redirect location
-          return [ 301, { "Location" => url }, [ "Redirecting..." ] ]
+          redirect_url = [ url, env["QUERY_STRING"] ].join("?").sub(/[\/\?\s]*$/, "").strip
+          return [ 301, { "Location" => redirect_url }, [ "Redirecting..." ] ]
         end
       end
 
