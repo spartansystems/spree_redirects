@@ -3,5 +3,4 @@ en:
   new_url: New URL
   redirect: Redirect
   redirects: Manage Redirects
-  explain_redirects: Forward old links to new ones
   duplicate_url_error: The old URL may not be the same as the new URL.
