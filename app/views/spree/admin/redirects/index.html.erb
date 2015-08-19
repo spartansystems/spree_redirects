@@ -1,8 +1,40 @@
-<%= render partial: 'spree/admin/shared/sub_menu/configuration' %>
+<% content_for :page_title do %>
+  <%= Spree.t(:listing_redirects) %>
+<% end %>
+<% content_for :page_actions do %>
+  <%= link_to icon('add') + ' ' + t(".new_redirect"), new_admin_redirect_url, :id => "new_redirect_link", class: 'btn btn-success' %>
+<% end %>
 
-<h1>Listing Redirects</h1>
+<% content_for :table_filter do %>
+  <div data-hook="admin_property_sidebar">
+    <%= search_form_for [:admin, @search] do |f| %>
 
-<table class="index">
+      <%- locals = {:f => f} %>
+
+      <div class="row">
+        <div class="col col-md-6">
+          <div data-hook="admin_property_index_search" class="form-group">
+            <%= f.label :old_url_cont, Spree.t(:old_url) %>
+            <%= f.text_field :old_url_cont, :class => "form-control js-quick-search-target" %>
+          </div>
+        </div>
+        <div class="col col-md-6">
+          <div data-hook="admin_property_index_search" class="form-group">
+            <%= f.label :new_url_cont, Spree.t(:new_url) %>
+            <%= f.text_field :new_url_cont, :class => "form-control" %>
+          </div>
+        </div>
+      </div>
+      <div class="form-actions" data-hook="admin_properties_index_search_buttons">
+        <%= button Spree.t(:search), 'search' %>
+      </div>
+
+    <% end %>
+  </div>
+<% end %>
+
+
+<table class="index table">
   <thead>
 	<tr>
     	<th><%= sort_link @search, :old_url,  t('redirect.old_url') %></th>
@@ -25,23 +57,3 @@
 </table>
 
 <%= paginate @collection %>
-
-<div id="new_redirect_form"></div>
-<br/>
-<p>
-  <%= link_to icon('add') + ' ' + t(".new_redirect"), new_admin_redirect_url, :id => "new_redirect_link" %>
-</p>
-
-<% content_for :head do %>
-  <script type="text/javascript">
-    jQuery(document).ready(function(){
-
-      jQuery('#new_redirect_link').click(function(event) {
-        event.preventDefault();
-        jQuery(this).hide();
-        jQuery.ajax({type: 'GET', url: this.href, data: ({authenticity_token: AUTH_TOKEN}), success: function(r){ jQuery('#new_redirect_form').html(r);} });
-      });
-
-    });
-  </script>
-<% end %>
