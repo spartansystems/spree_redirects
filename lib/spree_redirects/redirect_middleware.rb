@@ -1,39 +1,45 @@
 module SpreeRedirects
+  # Redirect based on available spree_redirects
   class RedirectMiddleware
-    
     def initialize(app)
       @app = app
     end
-   
-    def call(env)
-      # when consider_all_requests_local is false, an exception is raised for 404
-      # consider_all_requests_local should be false in a production environment
 
+    def call(env)
       begin
         status, headers, body = @app.call(env)
-      rescue Exception => e
+      rescue StandardError => e
         routing_error = e
       end
 
-      if routing_error.present? or status == 404
-        # path = [ env["PATH_INFO"], env["QUERY_STRING"] ].join("?").sub(/[\/\?\s]*$/, "").strip
+      return new_response(env) if routing_error.present? || status == 404
 
-        if url = find_redirect(env["PATH_INFO"])
-          # Issue a "Moved permanently" response with the redirect location
-          redirect_url = [ url, env["QUERY_STRING"] ].join("?").sub(/[\/\?\s]*$/, "").strip
-          return [ 301, { "Location" => redirect_url }, [ "Redirecting..." ] ]
-        end
-      end
+      # Raises errors in Dev mode where `consider_all_requests_local` is true
+      fail routing_error if routing_error.present?
 
-      raise routing_error if routing_error.present?
-
-      [ status, headers, body ]
+      [status, headers, body]
     end
-    
+
+    def new_response(env)
+      url = find_redirect(env['PATH_INFO'])
+      [
+        301,
+        { 'Location' => generate_url(url, env['QUERY_STRING']) },
+        ['Redirecting...']
+      ]
+    end
+
+    def generate_url(url, query_string)
+      redirect_url = [url, query_string]
+                     .join('?')
+                     .sub(%r{[\/\?\s]*$}, '')
+                     .strip
+      redirect_url.presence || '/'
+    end
+
     def find_redirect(url)
       redirect = Spree::Redirect.find_by_old_url(url)
       redirect.new_url unless redirect.nil?
     end
-    
   end
-end 
+end
