@@ -12,7 +12,8 @@ module SpreeRedirects
         routing_error = e
       end
 
-      return new_response(env) if routing_error.present? || status == 404
+      response = new_response(env) if routing_error.present? || status == 404
+      return response if response
 
       # Raises errors in Dev mode where `consider_all_requests_local` is true
       fail routing_error if routing_error.present?
@@ -22,6 +23,7 @@ module SpreeRedirects
 
     def new_response(env)
       url = find_redirect(env['PATH_INFO'])
+      return nil unless url
       [
         301,
         { 'Location' => generate_url(url, env['QUERY_STRING']) },
